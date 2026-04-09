@@ -35,14 +35,24 @@ export default function LeaderboardPage() {
 
   const fetchLeaderboard = async () => {
 
+    // REVIEW: No error handling — if the RPC fails, `data` is null and we silently return.
+    // At minimum log the error; ideally show a user-visible error state.
     const { data } = await supabase.rpc("leaderboard_view")
 
     if (!data) return
 
+    // REVIEW: Stale closure bug — `leaders` here always refers to the initial empty array
+    // because fetchLeaderboard is defined once and captured in the useEffect closure.
+    // The "new leader" comparison will never trigger after the first load.
+    // Fix by using a ref (useRef) to track the previous leader, or use the functional
+    // form of setState with a callback.
     if (leaders.length && data[0]?.rider_name !== leaders[0]?.rider_name) {
 
       setFlashLeader(data[0]?.rider_name)
 
+      // REVIEW: setTimeout without cleanup — if the component unmounts before the 4s
+      // timeout fires, React will warn about setting state on an unmounted component.
+      // Store the timeout ID and clear it in the useEffect cleanup.
       setTimeout(() => {
         setFlashLeader(null)
       }, 4000)
@@ -52,6 +62,9 @@ export default function LeaderboardPage() {
     setLeaders(data)
 
   }
+
+  // REVIEW: No loading state — on first render the leaderboard is empty with no indication
+  // that data is being fetched. Add a loading spinner or skeleton.
 
   return (
 
@@ -90,6 +103,7 @@ export default function LeaderboardPage() {
 
           {leaders.map((leader, index) => {
 
+            // REVIEW: `podium` can be simplified to `index < 3`.
             const podium = index === 0 || index === 1 || index === 2
 
             return (
@@ -118,6 +132,8 @@ export default function LeaderboardPage() {
 
                 </span>
 
+                {/* REVIEW: best_score.toFixed(2) will throw if best_score is null/undefined.
+                    Use optional chaining or a fallback: (leader.best_score ?? 0).toFixed(2). */}
                 <span className="text-white text-4xl font-extrabold">
                   {leader.best_score.toFixed(2)}
                 </span>
