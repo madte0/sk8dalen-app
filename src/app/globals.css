@@ -12,6 +12,8 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* REVIEW: Dark mode media query sets identical values to the default :root — this entire
+   block is redundant and can be removed. */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #000;
@@ -25,15 +27,22 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* REVIEW: This overrides Tailwind's built-in .h-10 utility class (which should be 2.5rem)
+   with a custom value of calc(var(--spacing) * 70) — roughly 1120px. This breaks .h-10
+   globally for the entire project. Use a custom class name instead (e.g. .logo-height). */
 .h-10 {
   height: calc(var(--spacing) * 70);
 }
 
+/* REVIEW: Targeting elements by chaining utility class names (a.flex.items-center.gap-3)
+   is extremely brittle — it will silently break if any class is added/removed/reordered.
+   Use a dedicated class name (e.g. .header-logo-link) instead. */
 a.flex.items-center.gap-3 {
   margin: 0 auto;
 }
 
-
+/* REVIEW: Using !important is a code smell — it creates specificity wars. The 80px
+   margin-top could be handled with a Tailwind class like mt-20 on the element instead. */
 .login-m {
   margin-top: 80px !important;
 }
